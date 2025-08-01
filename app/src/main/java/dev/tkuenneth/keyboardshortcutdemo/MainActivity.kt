@@ -8,8 +8,11 @@ import android.view.Menu
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -35,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 
@@ -115,8 +119,9 @@ fun KeyboardShortcutDemo(
                             expanded = showMenu,
                             onDismissRequest = { showMenu = false }
                         ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.say_hello)) },
+                            DropdownMenuItemWithShortcut(
+                                text = stringResource(R.string.say_hello),
+                                shortcut = "Ctrl+H",
                                 onClick = {
                                     showMenu = false
                                     sayHello(channel)
@@ -147,8 +152,55 @@ fun KeyboardShortcutDemo(
     }
 }
 
+@Composable
+fun DropdownMenuItemWithShortcut(
+    text: String,
+    shortcut: String?,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    DropdownMenuItem(
+        text = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = text,
+                    modifier = Modifier.alignByBaseline()
+                )
+                shortcut?.let { shortcut ->
+                    Text(
+                        text = shortcut,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        modifier = Modifier
+                            .alignByBaseline()
+                            .padding(start = 16.dp)
+                    )
+                }
+            }
+        },
+        onClick = onClick,
+        modifier = modifier
+    )
+}
+
 @Preview(showBackground = true)
 @Composable
 fun KeyboardShortcutDemoPreview() {
     KeyboardShortcutDemo(showKeyboardShortcuts = {}, channel = Channel())
+}
+
+fun getDisplayString(shortcutInfo: KeyboardShortcutInfo): String {
+    val parts = mutableListOf<String>()
+    if (shortcutInfo.modifiers and KeyEvent.META_CTRL_ON != 0) {
+        parts.add("Ctrl")
+    }
+    shortcutInfo.keycode.let { keyCode ->
+        if (keyCode in KeyEvent.KEYCODE_A..KeyEvent.KEYCODE_Z) {
+            parts.add(('A' + (keyCode - KeyEvent.KEYCODE_A)).toString())
+        }
+    }
+    return parts.joinToString("+")
 }
