@@ -4,4 +4,5 @@
     <string name="general">General</string>
     <string name="say_hello">Say \u00BBHello\u00AB</string>
     <string name="hello">Hello, world!</string>
+    <string name="more_options">More options</string>
 </resources>
