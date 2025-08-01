@@ -77,7 +77,7 @@ class MainActivity : ComponentActivity() {
     ): Boolean {
         if (
             keyCode == KeyEvent.KEYCODE_H &&
-            event.metaState and KeyEvent.META_CTRL_ON != 0
+            event.hasModifiers(KeyEvent.META_CTRL_ON)
         ) {
             sayHello(channel)
             return true
