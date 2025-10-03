@@ -1,2 +1,4 @@
 # KeyboardShortcutDemo
-Shows how to use keyboard shortcuts on Android
+
+Shows how to use keyboard shortcuts on Android, iOS, and the Desktop.
+
