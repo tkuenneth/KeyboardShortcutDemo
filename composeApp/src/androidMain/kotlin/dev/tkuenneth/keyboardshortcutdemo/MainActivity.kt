@@ -28,10 +28,9 @@ class MainActivity : ComponentActivity() {
             setContent {
                 KeyboardShortcutDemo(
                     shortcutDisplayString = getDisplayString(shortcut),
-                    showKeyboardShortcuts = { requestShowKeyboardShortcuts() },
                     channel = channel,
-                    sayHello = ::sayHello
-                )
+                    showKeyboardShortcuts = { requestShowKeyboardShortcuts() },
+                ) { sayHello(channel) }
             }
         }
     }
@@ -80,7 +79,6 @@ fun getDisplayString(shortcutInfo: KeyboardShortcutInfo): String {
         }
     }
     return parts.joinToString("+")
-
 }
 
 suspend fun sayHelloKeyboardShortcutInfo() = KeyboardShortcutInfo(

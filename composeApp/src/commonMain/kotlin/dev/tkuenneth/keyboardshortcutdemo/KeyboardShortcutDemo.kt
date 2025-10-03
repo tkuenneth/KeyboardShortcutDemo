@@ -39,9 +39,9 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 fun KeyboardShortcutDemo(
     shortcutDisplayString: String,
-    showKeyboardShortcuts: () -> Unit,
     channel: Channel<Unit>,
-    sayHello: (Channel<Unit>) -> Unit
+    showKeyboardShortcuts: () -> Unit,
+    sayHello: () -> Unit
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
     var showMenu by remember { mutableStateOf(false) }
@@ -67,7 +67,7 @@ fun KeyboardShortcutDemo(
                                 shortcut = shortcutDisplayString,
                                 onClick = {
                                     showMenu = false
-                                    sayHello(channel)
+                                    sayHello()
                                 }
                             )
                         }
