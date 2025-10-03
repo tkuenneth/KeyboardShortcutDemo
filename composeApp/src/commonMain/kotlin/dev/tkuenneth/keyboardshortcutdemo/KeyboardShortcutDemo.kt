@@ -19,6 +19,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -26,22 +27,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import keyboardshortcutdemo.composeapp.generated.resources.Res
 import keyboardshortcutdemo.composeapp.generated.resources.app_name
-import keyboardshortcutdemo.composeapp.generated.resources.hello
 import keyboardshortcutdemo.composeapp.generated.resources.more_options
-import keyboardshortcutdemo.composeapp.generated.resources.say_hello
 import keyboardshortcutdemo.composeapp.generated.resources.show_keyboard_shortcuts
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
+
+data class KeyboardShortcut(
+    val label: String,
+    val shortcut: String,
+    val snackbarMessage: String,
+    val channel: Channel<Unit>,
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KeyboardShortcutDemo(
-    shortcutDisplayString: String,
-    channel: Channel<Unit>,
+    shortcuts: List<KeyboardShortcut>,
     showKeyboardShortcuts: () -> Unit,
-    sayHello: () -> Unit
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
     var showMenu by remember { mutableStateOf(false) }
@@ -62,14 +65,18 @@ fun KeyboardShortcutDemo(
                             expanded = showMenu,
                             onDismissRequest = { showMenu = false }
                         ) {
-                            DropdownMenuItemWithShortcut(
-                                text = stringResource(Res.string.say_hello),
-                                shortcut = shortcutDisplayString,
-                                onClick = {
-                                    showMenu = false
-                                    sayHello()
+                            shortcuts.forEach {
+                                with(it) {
+                                    DropdownMenuItemWithShortcut(
+                                        text = label,
+                                        shortcut = shortcut,
+                                        onClick = {
+                                            showMenu = false
+                                            channel.trySend(Unit)
+                                        }
+                                    )
                                 }
-                            )
+                            }
                         }
                     }
                 )
@@ -84,24 +91,17 @@ fun KeyboardShortcutDemo(
                     Text(stringResource(Res.string.show_keyboard_shortcuts))
                 }
             }
-            stringResource(Res.string.hello).let { hello ->
-                LaunchedEffect(channel) {
-                    channel.receiveAsFlow().collect {
-                        snackBarHostState.showSnackbar(hello)
+            key(shortcuts) {
+                shortcuts.forEach {
+                    with(it) {
+                        LaunchedEffect(channel) {
+                            channel.receiveAsFlow().collect {
+                                snackBarHostState.showSnackbar(snackbarMessage)
+                            }
+                        }
                     }
                 }
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun KeyboardShortcutDemoPreview() {
-    KeyboardShortcutDemo(
-        shortcutDisplayString = "Ctrl+H",
-        showKeyboardShortcuts = {},
-        channel = Channel(),
-        sayHello = {}
-    )
 }

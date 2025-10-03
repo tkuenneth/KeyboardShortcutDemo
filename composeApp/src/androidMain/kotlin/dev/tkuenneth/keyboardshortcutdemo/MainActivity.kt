@@ -18,19 +18,22 @@ import org.jetbrains.compose.resources.getString
 
 class MainActivity : ComponentActivity() {
 
-    private val channel = Channel<Unit>(Channel.CONFLATED)
+    private val sayHelloChannel = Channel<Unit>(Channel.CONFLATED)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         lifecycleScope.launch {
-            val shortcut = sayHelloKeyboardShortcutInfo()
+            val shortcuts = listOf(
+                KeyboardShortcut(
+                    label = getString(Res.string.say_hello),
+                    shortcut = getDisplayString(sayHelloKeyboardShortcutInfo()),
+                    snackbarMessage = getString(Res.string.say_hello),
+                    channel = sayHelloChannel
+                )
+            )
             setContent {
-                KeyboardShortcutDemo(
-                    shortcutDisplayString = getDisplayString(shortcut),
-                    channel = channel,
-                    showKeyboardShortcuts = { requestShowKeyboardShortcuts() },
-                ) { sayHello(channel) }
+                KeyboardShortcutDemo(shortcuts) { requestShowKeyboardShortcuts() }
             }
         }
     }
@@ -57,32 +60,28 @@ class MainActivity : ComponentActivity() {
             keyCode == KeyEvent.KEYCODE_H &&
             event.hasModifiers(KeyEvent.META_CTRL_ON)
         ) {
-            sayHello(channel)
+            sayHelloChannel.trySend(Unit)
             return true
         }
         return super.onKeyShortcut(keyCode, event)
     }
-}
 
-fun sayHello(channel: Channel<Unit>) {
-    channel.trySend(Unit)
-}
-
-fun getDisplayString(shortcutInfo: KeyboardShortcutInfo): String {
-    val parts = mutableListOf<String>()
-    if (shortcutInfo.modifiers and KeyEvent.META_CTRL_ON != 0) {
-        parts.add("Ctrl")
-    }
-    shortcutInfo.keycode.let { keyCode ->
-        if (keyCode in KeyEvent.KEYCODE_A..KeyEvent.KEYCODE_Z) {
-            parts.add(('A' + (keyCode - KeyEvent.KEYCODE_A)).toString())
+    private fun getDisplayString(shortcutInfo: KeyboardShortcutInfo): String {
+        val parts = mutableListOf<String>()
+        if (shortcutInfo.modifiers and KeyEvent.META_CTRL_ON != 0) {
+            parts.add("Ctrl")
         }
+        shortcutInfo.keycode.let { keyCode ->
+            if (keyCode in KeyEvent.KEYCODE_A..KeyEvent.KEYCODE_Z) {
+                parts.add(('A' + (keyCode - KeyEvent.KEYCODE_A)).toString())
+            }
+        }
+        return parts.joinToString("+")
     }
-    return parts.joinToString("+")
-}
 
-suspend fun sayHelloKeyboardShortcutInfo() = KeyboardShortcutInfo(
-    getString(Res.string.say_hello),
-    KeyEvent.KEYCODE_H,
-    KeyEvent.META_CTRL_ON
-)
+    private suspend fun sayHelloKeyboardShortcutInfo() = KeyboardShortcutInfo(
+        getString(Res.string.say_hello),
+        KeyEvent.KEYCODE_H,
+        KeyEvent.META_CTRL_ON
+    )
+}
