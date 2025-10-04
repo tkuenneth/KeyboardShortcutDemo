@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
         mapKeyboardShortcuts = listKeyboardShortcutInfo.associateWith { shortcutInfo ->
             KeyboardShortcut(
                 label = shortcutInfo.label.toString(),
-                shortcut = shortcutInfo.getDisplayString(),
+                shortcutAsText = shortcutInfo.getDisplayString(),
             )
         }
         setContent {

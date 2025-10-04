@@ -28,21 +28,7 @@ import dev.tkuenneth.keyboardshortcutdemo.resources.Res
 import dev.tkuenneth.keyboardshortcutdemo.resources.app_name
 import dev.tkuenneth.keyboardshortcutdemo.resources.more_options
 import dev.tkuenneth.keyboardshortcutdemo.resources.show_keyboard_shortcuts
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.receiveAsFlow
 import org.jetbrains.compose.resources.stringResource
-
-data class KeyboardShortcut(
-    val label: String,
-    val shortcut: String
-) {
-    private val channel = Channel<Unit>(Channel.CONFLATED)
-    val flow = channel.receiveAsFlow()
-
-    fun triggerAction() {
-        channel.trySend(Unit)
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,17 +57,15 @@ fun KeyboardShortcutDemo(
                             expanded = showMenu,
                             onDismissRequest = { showMenu = false }
                         ) {
-                            shortcuts.forEach {
-                                with(it) {
-                                    DropdownMenuItemWithShortcut(
-                                        text = label,
-                                        shortcut = shortcut,
-                                        onClick = {
-                                            showMenu = false
-                                            triggerAction()
-                                        }
-                                    )
-                                }
+                            shortcuts.forEach { shortcut ->
+                                DropdownMenuItemWithShortcut(
+                                    text = shortcut.label,
+                                    shortcut = shortcut.shortcutAsText,
+                                    onClick = {
+                                        showMenu = false
+                                        shortcut.triggerAction()
+                                    }
+                                )
                             }
                         }
                     }
