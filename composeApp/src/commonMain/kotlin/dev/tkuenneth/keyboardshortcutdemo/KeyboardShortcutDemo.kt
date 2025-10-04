@@ -37,7 +37,7 @@ data class KeyboardShortcut(
     val label: String,
     val shortcut: String,
     val snackbarMessage: String,
-    val channel: Channel<Unit>,
+    val channel: Channel<Unit> = Channel(Channel.CONFLATED),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)

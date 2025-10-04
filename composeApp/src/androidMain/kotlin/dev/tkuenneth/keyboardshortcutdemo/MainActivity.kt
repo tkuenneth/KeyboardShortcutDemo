@@ -8,34 +8,32 @@ import android.view.Menu
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.lifecycle.lifecycleScope
-import dev.tkuenneth.keyboardshortcutdemo.resources.Res
-import dev.tkuenneth.keyboardshortcutdemo.resources.general
-import dev.tkuenneth.keyboardshortcutdemo.resources.hello
-import dev.tkuenneth.keyboardshortcutdemo.resources.say_hello
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.getString
 
 class MainActivity : ComponentActivity() {
 
-    private val sayHelloChannel = Channel<Unit>(Channel.CONFLATED)
+    private lateinit var listKeyboardShortcutInfo: List<KeyboardShortcutInfo>
+    private lateinit var mapKeyboardShortcuts: Map<KeyboardShortcutInfo, KeyboardShortcut>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        lifecycleScope.launch {
-            val shortcuts = listOf(
-                KeyboardShortcut(
-                    label = getString(Res.string.say_hello),
-                    shortcut = getDisplayString(sayHelloKeyboardShortcutInfo()),
-                    snackbarMessage = getString(Res.string.hello),
-                    channel = sayHelloChannel
-                )
+        listKeyboardShortcutInfo = listOf(
+            KeyboardShortcutInfo(
+                getString(R.string.say_hello),
+                KeyEvent.KEYCODE_H,
+                KeyEvent.META_CTRL_ON
             )
-            setContent {
-                KeyboardShortcutDemo(shortcuts) { requestShowKeyboardShortcuts() }
+        )
+        mapKeyboardShortcuts =
+            listKeyboardShortcutInfo.associateWith { shortcutInfo ->
+                KeyboardShortcut(
+                    label = shortcutInfo.label.toString(),
+                    shortcut = shortcutInfo.getDisplayString(),
+                    snackbarMessage = getString(R.string.hello),
+                )
             }
+        setContent {
+            KeyboardShortcutDemo(mapKeyboardShortcuts.values.toList()) { requestShowKeyboardShortcuts() }
         }
     }
 
@@ -45,44 +43,32 @@ class MainActivity : ComponentActivity() {
         deviceId: Int
     ) {
         super.onProvideKeyboardShortcuts(data, menu, deviceId)
-        lifecycleScope.launch {
-            mutableListOf<KeyboardShortcutInfo>().apply {
-                add(sayHelloKeyboardShortcutInfo())
-                data.add(KeyboardShortcutGroup(getString(Res.string.general), this))
-            }
-        }
+        data.add(KeyboardShortcutGroup(getString(R.string.general), listKeyboardShortcutInfo))
     }
 
     override fun onKeyShortcut(
         keyCode: Int,
         event: KeyEvent
     ): Boolean {
-        if (
-            keyCode == KeyEvent.KEYCODE_H &&
-            event.hasModifiers(KeyEvent.META_CTRL_ON)
-        ) {
-            sayHelloChannel.trySend(Unit)
-            return true
-        }
+        listKeyboardShortcutInfo.find { it.keycode == keyCode && event.hasModifiers(it.modifiers) }
+            ?.let {
+                val shortcut = mapKeyboardShortcuts[it]
+                shortcut?.channel?.trySend(Unit)
+                return true
+            }
         return super.onKeyShortcut(keyCode, event)
     }
 
-    private fun getDisplayString(shortcutInfo: KeyboardShortcutInfo): String {
+    private fun KeyboardShortcutInfo.getDisplayString(): String {
         val parts = mutableListOf<String>()
-        if (shortcutInfo.modifiers and KeyEvent.META_CTRL_ON != 0) {
+        if (modifiers and KeyEvent.META_CTRL_ON != 0) {
             parts.add("Ctrl")
         }
-        shortcutInfo.keycode.let { keyCode ->
+        keycode.let { keyCode ->
             if (keyCode in KeyEvent.KEYCODE_A..KeyEvent.KEYCODE_Z) {
                 parts.add(('A' + (keyCode - KeyEvent.KEYCODE_A)).toString())
             }
         }
         return parts.joinToString("+")
     }
-
-    private suspend fun sayHelloKeyboardShortcutInfo() = KeyboardShortcutInfo(
-        getString(Res.string.say_hello),
-        KeyEvent.KEYCODE_H,
-        KeyEvent.META_CTRL_ON
-    )
 }
