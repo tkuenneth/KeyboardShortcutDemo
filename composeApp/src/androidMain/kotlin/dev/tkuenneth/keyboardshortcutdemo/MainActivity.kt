@@ -8,6 +8,12 @@ import android.view.Menu
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 class MainActivity : ComponentActivity() {
 
@@ -29,11 +35,27 @@ class MainActivity : ComponentActivity() {
                 KeyboardShortcut(
                     label = shortcutInfo.label.toString(),
                     shortcut = shortcutInfo.getDisplayString(),
-                    snackbarMessage = getString(R.string.hello),
                 )
             }
         setContent {
-            KeyboardShortcutDemo(mapKeyboardShortcuts.values.toList()) { requestShowKeyboardShortcuts() }
+            var snackbarMessage by remember { mutableStateOf("") }
+            val listKeyboardShortcuts = remember {
+                mapKeyboardShortcuts.values.toList()
+            }
+            key(listKeyboardShortcuts) {
+                listKeyboardShortcuts.forEach { shortcut ->
+                    LaunchedEffect(shortcut) {
+                        shortcut.events.collect {
+                            snackbarMessage = getString(R.string.hello)
+                        }
+                    }
+                }
+            }
+            KeyboardShortcutDemo(
+                snackbarMessage = snackbarMessage,
+                shortcuts = listKeyboardShortcuts,
+                showKeyboardShortcuts = { requestShowKeyboardShortcuts() },
+                clearSnackbarMessage = { snackbarMessage = "" })
         }
     }
 
@@ -53,7 +75,7 @@ class MainActivity : ComponentActivity() {
         listKeyboardShortcutInfo.find { it.keycode == keyCode && event.hasModifiers(it.modifiers) }
             ?.let {
                 val shortcut = mapKeyboardShortcuts[it]
-                shortcut?.channel?.trySend(Unit)
+                shortcut?.triggerAction()
                 return true
             }
         return super.onKeyShortcut(keyCode, event)

@@ -19,7 +19,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -35,16 +34,23 @@ import org.jetbrains.compose.resources.stringResource
 
 data class KeyboardShortcut(
     val label: String,
-    val shortcut: String,
-    val snackbarMessage: String,
-    val channel: Channel<Unit> = Channel(Channel.CONFLATED),
-)
+    val shortcut: String
+) {
+    private val _events = Channel<Unit>(Channel.UNLIMITED)
+    val events = _events.receiveAsFlow()
+
+    fun triggerAction() {
+        _events.trySend(Unit)
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KeyboardShortcutDemo(
     shortcuts: List<KeyboardShortcut>,
+    snackbarMessage: String,
     showKeyboardShortcuts: () -> Unit,
+    clearSnackbarMessage: () -> Unit
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
     var showMenu by remember { mutableStateOf(false) }
@@ -72,7 +78,7 @@ fun KeyboardShortcutDemo(
                                         shortcut = shortcut,
                                         onClick = {
                                             showMenu = false
-                                            channel.trySend(Unit)
+                                            triggerAction()
                                         }
                                     )
                                 }
@@ -91,15 +97,10 @@ fun KeyboardShortcutDemo(
                     Text(stringResource(Res.string.show_keyboard_shortcuts))
                 }
             }
-            key(shortcuts) {
-                shortcuts.forEach {
-                    with(it) {
-                        LaunchedEffect(channel) {
-                            channel.receiveAsFlow().collect {
-                                snackBarHostState.showSnackbar(snackbarMessage)
-                            }
-                        }
-                    }
+            LaunchedEffect(snackbarMessage) {
+                if (snackbarMessage.isNotBlank()) {
+                    snackBarHostState.showSnackbar(snackbarMessage)
+                    clearSnackbarMessage()
                 }
             }
         }
