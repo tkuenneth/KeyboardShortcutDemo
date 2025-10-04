@@ -25,10 +25,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import keyboardshortcutdemo.composeapp.generated.resources.Res
-import keyboardshortcutdemo.composeapp.generated.resources.app_name
-import keyboardshortcutdemo.composeapp.generated.resources.more_options
-import keyboardshortcutdemo.composeapp.generated.resources.show_keyboard_shortcuts
+import dev.tkuenneth.keyboardshortcutdemo.resources.Res
+import dev.tkuenneth.keyboardshortcutdemo.resources.app_name
+import dev.tkuenneth.keyboardshortcutdemo.resources.more_options
+import dev.tkuenneth.keyboardshortcutdemo.resources.show_keyboard_shortcuts
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import org.jetbrains.compose.resources.stringResource

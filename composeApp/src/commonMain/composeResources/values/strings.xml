@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name"> Keyboard Shortcut Demo</string>
+    <string name="app_name">Keyboard Shortcut Demo</string>
     <string name="show_keyboard_shortcuts">Show keyboard shortcuts</string>
     <string name="general">General</string>
     <string name="say_hello">Say \u00BBHello\u00AB</string>

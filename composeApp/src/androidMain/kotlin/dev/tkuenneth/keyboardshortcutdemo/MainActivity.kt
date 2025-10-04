@@ -9,9 +9,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
-import keyboardshortcutdemo.composeapp.generated.resources.Res
-import keyboardshortcutdemo.composeapp.generated.resources.general
-import keyboardshortcutdemo.composeapp.generated.resources.say_hello
+import dev.tkuenneth.keyboardshortcutdemo.resources.Res
+import dev.tkuenneth.keyboardshortcutdemo.resources.general
+import dev.tkuenneth.keyboardshortcutdemo.resources.hello
+import dev.tkuenneth.keyboardshortcutdemo.resources.say_hello
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -28,7 +29,7 @@ class MainActivity : ComponentActivity() {
                 KeyboardShortcut(
                     label = getString(Res.string.say_hello),
                     shortcut = getDisplayString(sayHelloKeyboardShortcutInfo()),
-                    snackbarMessage = getString(Res.string.say_hello),
+                    snackbarMessage = getString(Res.string.hello),
                     channel = sayHelloChannel
                 )
             )
