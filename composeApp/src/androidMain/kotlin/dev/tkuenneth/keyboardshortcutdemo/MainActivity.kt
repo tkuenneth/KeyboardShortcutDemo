@@ -1,5 +1,6 @@
 package dev.tkuenneth.keyboardshortcutdemo
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.KeyboardShortcutGroup
@@ -14,13 +15,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var listKeyboardShortcutInfo: List<KeyboardShortcutInfo>
     private lateinit var mapKeyboardShortcuts: Map<KeyboardShortcutInfo, KeyboardShortcut>
+
+    private var hardKeyboardHiddenFlow = MutableStateFlow(-1)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,12 +42,14 @@ class MainActivity : ComponentActivity() {
                 shortcutAsText = shortcutInfo.getDisplayString(),
             )
         }
+        updateFlows()
         setContent {
             var snackbarMessage by remember { mutableStateOf("") }
             val listKeyboardShortcuts = remember {
                 mapKeyboardShortcuts.values.toList()
             }
             val helloMessage = stringResource(R.string.hello)
+            val hardKeyboardHidden by hardKeyboardHiddenFlow.collectAsStateWithLifecycle()
             LaunchedEffect(listKeyboardShortcuts) {
                 listKeyboardShortcuts.forEach { shortcut ->
                     launch {
@@ -52,6 +60,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
             KeyboardShortcutDemo(
+                hardwareKeyboardHidden = hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES,
                 snackbarMessage = snackbarMessage,
                 shortcuts = listKeyboardShortcuts,
                 showKeyboardShortcuts = { requestShowKeyboardShortcuts() },
@@ -80,6 +89,11 @@ class MainActivity : ComponentActivity() {
         return super.onKeyShortcut(keyCode, event)
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        updateFlows()
+    }
+
     private fun KeyboardShortcutInfo.getDisplayString(): String {
         val parts = mutableListOf<String>()
         if (modifiers and KeyEvent.META_CTRL_ON != 0) {
@@ -89,5 +103,11 @@ class MainActivity : ComponentActivity() {
             parts.add(('A' + (keycode - KeyEvent.KEYCODE_A)).toString())
         }
         return parts.joinToString("+")
+    }
+
+    private fun updateFlows() {
+        hardKeyboardHiddenFlow.update {
+            resources.configuration.hardKeyboardHidden
+        }
     }
 }

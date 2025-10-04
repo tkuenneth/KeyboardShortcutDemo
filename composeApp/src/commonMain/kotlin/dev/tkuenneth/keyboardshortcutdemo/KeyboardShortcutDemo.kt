@@ -3,6 +3,7 @@ package dev.tkuenneth.keyboardshortcutdemo
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
@@ -26,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import dev.tkuenneth.keyboardshortcutdemo.resources.Res
 import dev.tkuenneth.keyboardshortcutdemo.resources.app_name
+import dev.tkuenneth.keyboardshortcutdemo.resources.hardware_keyboard_hidden
 import dev.tkuenneth.keyboardshortcutdemo.resources.more_options
 import dev.tkuenneth.keyboardshortcutdemo.resources.show_keyboard_shortcuts
 import org.jetbrains.compose.resources.stringResource
@@ -34,6 +36,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KeyboardShortcutDemo(
+    hardwareKeyboardHidden: Boolean,
     shortcuts: List<KeyboardShortcut>,
     snackbarMessage: String,
     showKeyboardShortcuts: () -> Unit,
@@ -81,6 +84,14 @@ fun KeyboardShortcutDemo(
                 Button(onClick = showKeyboardShortcuts) {
                     Text(stringResource(Res.string.show_keyboard_shortcuts))
                 }
+                if (hardwareKeyboardHidden) {
+                    Text(
+                        text = stringResource(Res.string.hardware_keyboard_hidden),
+                        modifier = Modifier.align(Alignment.BottomCenter).safeContentPadding(),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
             LaunchedEffect(snackbarMessage) {
                 if (snackbarMessage.isNotBlank()) {
@@ -97,6 +108,7 @@ fun KeyboardShortcutDemo(
 private fun KeyboardShortcutDemoPreview() {
     MaterialTheme {
         KeyboardShortcutDemo(
+            hardwareKeyboardHidden = false,
             shortcuts = listOf(
                 KeyboardShortcut("Cut", "Ctrl+X"),
                 KeyboardShortcut("Copy", "Ctrl+C")
