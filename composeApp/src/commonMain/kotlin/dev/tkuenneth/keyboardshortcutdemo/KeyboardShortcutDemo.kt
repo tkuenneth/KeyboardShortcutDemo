@@ -29,6 +29,7 @@ import dev.tkuenneth.keyboardshortcutdemo.resources.app_name
 import dev.tkuenneth.keyboardshortcutdemo.resources.more_options
 import dev.tkuenneth.keyboardshortcutdemo.resources.show_keyboard_shortcuts
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,5 +89,21 @@ fun KeyboardShortcutDemo(
                 }
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun KeyboardShortcutDemoPreview() {
+    MaterialTheme {
+        KeyboardShortcutDemo(
+            shortcuts = listOf(
+                KeyboardShortcut("Cut", "Ctrl+X"),
+                KeyboardShortcut("Copy", "Ctrl+C")
+            ),
+            snackbarMessage = "",
+            showKeyboardShortcuts = {},
+            clearSnackbarMessage = {}
+        )
     }
 }
