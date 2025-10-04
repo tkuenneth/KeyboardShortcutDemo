@@ -45,7 +45,7 @@ class MainActivity : ComponentActivity() {
             LaunchedEffect(listKeyboardShortcuts) {
                 listKeyboardShortcuts.forEach { shortcut ->
                     launch {
-                        shortcut.events.collectLatest {
+                        shortcut.flow.collectLatest {
                             snackbarMessage = helloMessage
                         }
                     }

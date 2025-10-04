@@ -36,11 +36,11 @@ data class KeyboardShortcut(
     val label: String,
     val shortcut: String
 ) {
-    private val _events = Channel<Unit>(Channel.UNLIMITED)
-    val events = _events.receiveAsFlow()
+    private val channel = Channel<Unit>(Channel.CONFLATED)
+    val flow = channel.receiveAsFlow()
 
     fun triggerAction() {
-        _events.trySend(Unit)
+        channel.trySend(Unit)
     }
 }
 
