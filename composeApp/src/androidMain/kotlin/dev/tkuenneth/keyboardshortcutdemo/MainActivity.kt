@@ -9,17 +9,11 @@ import android.view.Menu
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -44,27 +38,14 @@ class MainActivity : ComponentActivity() {
         }
         updateFlows()
         setContent {
-            var snackbarMessage by remember { mutableStateOf("") }
             val listKeyboardShortcuts = remember {
                 mapKeyboardShortcuts.values.toList()
             }
-            val helloMessage = stringResource(R.string.hello)
             val hardKeyboardHidden by hardKeyboardHiddenFlow.collectAsStateWithLifecycle()
-            LaunchedEffect(listKeyboardShortcuts) {
-                listKeyboardShortcuts.forEach { shortcut ->
-                    launch {
-                        shortcut.flow.collectLatest {
-                            snackbarMessage = helloMessage
-                        }
-                    }
-                }
-            }
-            KeyboardShortcutDemo(
-                hardwareKeyboardHidden = hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES,
-                snackbarMessage = snackbarMessage,
-                shortcuts = listKeyboardShortcuts,
-                showKeyboardShortcuts = { requestShowKeyboardShortcuts() },
-                clearSnackbarMessage = { snackbarMessage = "" })
+            MainScreen(
+                listKeyboardShortcuts = listKeyboardShortcuts,
+                hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES,
+            ) { requestShowKeyboardShortcuts() }
         }
     }
 

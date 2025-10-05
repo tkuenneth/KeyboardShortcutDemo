@@ -8,6 +8,9 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         title = "KeyboardShortcutDemo",
     ) {
-        App()
+        MainScreen(
+            listKeyboardShortcuts = emptyList(),
+            hardKeyboardHidden = false,
+        ) {}
     }
 }
