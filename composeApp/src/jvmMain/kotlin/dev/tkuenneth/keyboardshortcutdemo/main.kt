@@ -32,24 +32,29 @@ fun main() = application {
         }
         val shortcuts = remember(nativeShortcuts) {
             nativeShortcuts.map {
-                KeyboardShortcut(it.first, it.second.toString())
+                KeyboardShortcut(it.first, it.second.toHumanReadableString())
             }
         }
         var showKeyboardShortcuts by remember { mutableStateOf(false) }
         MainScreen(
             listKeyboardShortcuts = shortcuts,
             hardKeyboardHidden = false,
-        ) {}
+        ) { showKeyboardShortcuts = true }
         MenuBar {
             Menu(text = stringResource(Res.string.more_options)) {
                 nativeShortcuts.forEachIndexed { index, nativeShortcut ->
                     Item(
                         text = nativeShortcut.first,
                         shortcut = nativeShortcut.second,
-                        onClick = { shortcuts[index].triggerAction() }
-                    )
+                        onClick = { shortcuts[index].triggerAction() })
                 }
             }
         }
+        KeyboardShortcuts(
+            enabled = showKeyboardShortcuts,
+            shortcuts = shortcuts
+        ) { showKeyboardShortcuts = false }
     }
 }
+
+private fun KeyShortcut.toHumanReadableString() = this.toString().replace("Key: ", "")

@@ -19,28 +19,34 @@ fun DropdownMenuItemWithShortcut(
     modifier: Modifier = Modifier
 ) {
     DropdownMenuItem(
-        text = {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = text,
-                    modifier = Modifier.alignByBaseline()
-                )
-                shortcut?.let { shortcut ->
-                    Text(
-                        text = shortcut,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        modifier = Modifier
-                            .alignByBaseline()
-                            .padding(start = 16.dp)
-                    )
-                }
-            }
-        },
+        text = { ShortcutText(text = text, shortcut = shortcut) },
         onClick = onClick,
         modifier = modifier
     )
+}
+
+@Composable
+fun ShortcutText(
+    text: String,
+    shortcut: String?,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.alignByBaseline()
+        )
+        shortcut?.let { shortcut ->
+            Text(
+                text = shortcut,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier
+                    .alignByBaseline()
+                    .padding(start = 16.dp)
+            )
+        }
+    }
 }
