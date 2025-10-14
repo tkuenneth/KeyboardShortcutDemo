@@ -1,23 +1,21 @@
 package dev.tkuenneth.keyboardshortcutdemo
 
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.ComposeUIViewController
+import dev.tkuenneth.keyboardshortcutdemo.resources.Res
+import dev.tkuenneth.keyboardshortcutdemo.resources.say_hello
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ExportObjCClass
 import kotlinx.cinterop.ObjCAction
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.getString
 import platform.Foundation.NSSelectorFromString
 import platform.UIKit.UIKeyCommand
-import platform.UIKit.UIKeyModifierCommand
+import platform.UIKit.UIKeyModifierControl
 import platform.UIKit.UIViewAutoresizingFlexibleHeight
 import platform.UIKit.UIViewAutoresizingFlexibleWidth
 import platform.UIKit.UIViewController
@@ -28,7 +26,7 @@ import platform.UIKit.didMoveToParentViewController
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 @ExportObjCClass
 class KeyboardHostingController(
-    private val onAddAction: () -> Unit,
+    private val shortcuts: List<KeyboardShortcut>,
     private val contentFactory: () -> UIViewController,
 ) : UIViewController(nibName = null, bundle = null) {
 
@@ -41,13 +39,16 @@ class KeyboardHostingController(
         view.addSubview(composeController.view)
         composeController.view.autoresizingMask = UIViewAutoresizingFlexibleWidth or UIViewAutoresizingFlexibleHeight
         composeController.didMoveToParentViewController(this)
-        val cmd = UIKeyCommand.keyCommandWithInput(
-            input = "N",
-            modifierFlags = UIKeyModifierCommand,
-            action = NSSelectorFromString("handleAddCommand:")
-        )
-        cmd.discoverabilityTitle = "Add hello"
-        addKeyCommand(cmd)
+        shortcuts.forEach { shortcut ->
+            UIKeyCommand.keyCommandWithInput(
+                input = shortcut.shortcutAsText,
+                modifierFlags = UIKeyModifierControl,
+                action = NSSelectorFromString("handleCommand:")
+            ).apply {
+                discoverabilityTitle = shortcut.label
+                addKeyCommand(this)
+            }
+        }
     }
 
     override fun viewDidAppear(animated: Boolean) {
@@ -63,30 +64,23 @@ class KeyboardHostingController(
     override fun canBecomeFirstResponder(): Boolean = true
 
     @ObjCAction
-    fun handleAddCommand(sender: UIKeyCommand?) {
-        onAddAction()
+    fun handleCommand(sender: UIKeyCommand?) {
+        shortcuts.find { it.shortcutAsText == sender?.input }?.triggerAction()
     }
 }
 
 fun MainViewController(): UIViewController {
-    val trigger = Channel<Unit>(CONFLATED)
-    val addAction: () -> Unit = { trigger.trySend(Unit) }
+    val sayHello = runBlocking { getString(Res.string.say_hello) }
+    val shortcuts = listOf(KeyboardShortcut(sayHello, "H"))
     return KeyboardHostingController(
-        onAddAction = addAction,
+        shortcuts = shortcuts,
         contentFactory = {
             ComposeUIViewController {
                 var hardHidden by remember { mutableStateOf(false) }
-                LaunchedEffect(Unit) {
-                    launch {
-                        trigger.receiveAsFlow().collectLatest {
-                            hardHidden = !hardHidden
-                        }
-                    }
-                }
                 MainScreen(
-                    listKeyboardShortcuts = emptyList(),
+                    listKeyboardShortcuts = shortcuts,
                     hardKeyboardHidden = hardHidden,
-                ) { addAction() }
+                ) { }
             }
         }
     )
