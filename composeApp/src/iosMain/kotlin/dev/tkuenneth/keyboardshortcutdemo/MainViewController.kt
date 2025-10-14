@@ -15,6 +15,7 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
 import platform.Foundation.NSSelectorFromString
 import platform.UIKit.UIKeyCommand
+import platform.UIKit.UIKeyModifierAlternate
 import platform.UIKit.UIKeyModifierControl
 import platform.UIKit.UIViewAutoresizingFlexibleHeight
 import platform.UIKit.UIViewAutoresizingFlexibleWidth
@@ -40,9 +41,16 @@ class KeyboardHostingController(
         composeController.view.autoresizingMask = UIViewAutoresizingFlexibleWidth or UIViewAutoresizingFlexibleHeight
         composeController.didMoveToParentViewController(this)
         shortcuts.forEach { shortcut ->
+            var mask = 0L
+            shortcut.shortcutAsText.forEach {
+                when (it) {
+                    '^' -> mask = mask or UIKeyModifierControl
+                    '\u2325' -> mask = mask or UIKeyModifierAlternate
+                }
+            }
             UIKeyCommand.keyCommandWithInput(
-                input = shortcut.shortcutAsText,
-                modifierFlags = UIKeyModifierControl,
+                input = shortcut.shortcutAsText.last().toString(),
+                modifierFlags = mask,
                 action = NSSelectorFromString("handleCommand:")
             ).apply {
                 discoverabilityTitle = shortcut.label
@@ -65,13 +73,13 @@ class KeyboardHostingController(
 
     @ObjCAction
     fun handleCommand(sender: UIKeyCommand?) {
-        shortcuts.find { it.shortcutAsText == sender?.input }?.triggerAction()
+        shortcuts.find { it.shortcutAsText.endsWith(sender?.input ?: "") }?.triggerAction()
     }
 }
 
 fun MainViewController(): UIViewController {
     val sayHello = runBlocking { getString(Res.string.say_hello) }
-    val shortcuts = listOf(KeyboardShortcut(sayHello, "H"))
+    val shortcuts = listOf(KeyboardShortcut(sayHello, "^H"))
     return KeyboardHostingController(
         shortcuts = shortcuts,
         contentFactory = {
