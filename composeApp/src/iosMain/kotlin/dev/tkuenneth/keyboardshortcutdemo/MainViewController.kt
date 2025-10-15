@@ -7,88 +7,28 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.ComposeUIViewController
 import dev.tkuenneth.keyboardshortcutdemo.resources.Res
 import dev.tkuenneth.keyboardshortcutdemo.resources.say_hello
-import kotlinx.cinterop.BetaInteropApi
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.ExportObjCClass
-import kotlinx.cinterop.ObjCAction
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
-import platform.Foundation.NSSelectorFromString
-import platform.UIKit.UIKeyCommand
-import platform.UIKit.UIKeyModifierAlternate
-import platform.UIKit.UIKeyModifierControl
-import platform.UIKit.UIViewAutoresizingFlexibleHeight
-import platform.UIKit.UIViewAutoresizingFlexibleWidth
 import platform.UIKit.UIViewController
-import platform.UIKit.addChildViewController
-import platform.UIKit.addKeyCommand
-import platform.UIKit.didMoveToParentViewController
 
-@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
-@ExportObjCClass
-class KeyboardHostingController(
-    private val shortcuts: List<KeyboardShortcut>,
-    private val contentFactory: () -> UIViewController,
-) : UIViewController(nibName = null, bundle = null) {
-
-    private lateinit var composeController: UIViewController
-
-    override fun viewDidLoad() {
-        super.viewDidLoad()
-        composeController = contentFactory()
-        addChildViewController(composeController)
-        view.addSubview(composeController.view)
-        composeController.view.autoresizingMask = UIViewAutoresizingFlexibleWidth or UIViewAutoresizingFlexibleHeight
-        composeController.didMoveToParentViewController(this)
-        shortcuts.forEach { shortcut ->
-            var mask = 0L
-            shortcut.shortcutAsText.forEach {
-                when (it) {
-                    '^' -> mask = mask or UIKeyModifierControl
-                    '\u2325' -> mask = mask or UIKeyModifierAlternate
-                }
-            }
-            UIKeyCommand.keyCommandWithInput(
-                input = shortcut.shortcutAsText.last().toString(),
-                modifierFlags = mask,
-                action = NSSelectorFromString("handleCommand:")
-            ).apply {
-                discoverabilityTitle = shortcut.label
-                addKeyCommand(this)
-            }
-        }
-    }
-
-    override fun viewDidAppear(animated: Boolean) {
-        super.viewDidAppear(animated)
-        becomeFirstResponder()
-    }
-
-    override fun viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        composeController.view.setFrame(view.bounds)
-    }
-
-    override fun canBecomeFirstResponder(): Boolean = true
-
-    @ObjCAction
-    fun handleCommand(sender: UIKeyCommand?) {
-        shortcuts.find { it.shortcutAsText.endsWith(sender?.input ?: "") }?.triggerAction()
-    }
-}
 
 fun MainViewController(): UIViewController {
     val sayHello = runBlocking { getString(Res.string.say_hello) }
     val shortcuts = listOf(KeyboardShortcut(sayHello, "^H"))
-    return KeyboardHostingController(
+    return KeyboardShortcutViewController(
         shortcuts = shortcuts,
         contentFactory = {
             ComposeUIViewController {
                 var hardHidden by remember { mutableStateOf(false) }
+                var showKeyboardShortcuts by remember { mutableStateOf(false) }
                 MainScreen(
                     listKeyboardShortcuts = shortcuts,
                     hardKeyboardHidden = hardHidden,
-                ) { }
+                ) { showKeyboardShortcuts = true }
+                KeyboardShortcuts(
+                    enabled = showKeyboardShortcuts,
+                    shortcuts = shortcuts
+                ) { showKeyboardShortcuts = false }
             }
         }
     )
