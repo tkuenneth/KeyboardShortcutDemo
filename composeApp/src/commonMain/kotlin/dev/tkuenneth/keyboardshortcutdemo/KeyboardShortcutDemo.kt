@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import dev.tkuenneth.keyboardshortcutdemo.resources.Res
 import dev.tkuenneth.keyboardshortcutdemo.resources.app_name
 import dev.tkuenneth.keyboardshortcutdemo.resources.hardware_keyboard_hidden
@@ -81,8 +82,10 @@ fun KeyboardShortcutDemo(
                     .padding(innerPadding)
                     .fillMaxSize(), contentAlignment = Alignment.Center
             ) {
-                Button(onClick = showKeyboardShortcuts) {
-                    Text(stringResource(Res.string.show_keyboard_shortcuts))
+                Button(
+                    onClick = showKeyboardShortcuts,
+                    modifier = Modifier.onPreviewKeyEvent { false }) {
+                    TextWithUnderlinedChar(stringResource(Res.string.show_keyboard_shortcuts))
                 }
                 if (hardwareKeyboardHidden) {
                     Text(
