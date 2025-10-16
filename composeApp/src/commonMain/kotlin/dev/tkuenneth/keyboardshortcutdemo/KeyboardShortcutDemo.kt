@@ -25,7 +25,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
 import dev.tkuenneth.keyboardshortcutdemo.resources.Res
 import dev.tkuenneth.keyboardshortcutdemo.resources.app_name
 import dev.tkuenneth.keyboardshortcutdemo.resources.hardware_keyboard_hidden
@@ -45,9 +47,15 @@ fun KeyboardShortcutDemo(
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
     var showMenu by remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
     MaterialTheme {
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize()
+                .keyboardShortcuts(
+                    Pair(
+                        Key.S, showKeyboardShortcuts
+                    )
+                ),
             topBar = {
                 TopAppBar(
                     title = { Text(stringResource(Res.string.app_name)) },
@@ -79,12 +87,17 @@ fun KeyboardShortcutDemo(
             snackbarHost = { SnackbarHost(snackBarHostState) }) { innerPadding ->
             Box(
                 modifier = Modifier
+                    .focusRequester(focusRequester)
                     .padding(innerPadding)
-                    .fillMaxSize(), contentAlignment = Alignment.Center
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
+                LaunchedEffect(focusRequester) {
+                    focusRequester.requestFocus()
+                }
                 Button(
                     onClick = showKeyboardShortcuts,
-                    modifier = Modifier.onPreviewKeyEvent { false }) {
+                ) {
                     TextWithUnderlinedChar(stringResource(Res.string.show_keyboard_shortcuts))
                 }
                 if (hardwareKeyboardHidden) {
