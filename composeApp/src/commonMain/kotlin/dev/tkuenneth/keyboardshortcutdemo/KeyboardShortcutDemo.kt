@@ -1,6 +1,8 @@
 package dev.tkuenneth.keyboardshortcutdemo
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
@@ -17,6 +19,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,8 +32,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.unit.dp
 import dev.tkuenneth.keyboardshortcutdemo.resources.Res
 import dev.tkuenneth.keyboardshortcutdemo.resources.app_name
+import dev.tkuenneth.keyboardshortcutdemo.resources.dark_mode
 import dev.tkuenneth.keyboardshortcutdemo.resources.hardware_keyboard_hidden
 import dev.tkuenneth.keyboardshortcutdemo.resources.more_options
 import dev.tkuenneth.keyboardshortcutdemo.resources.show_keyboard_shortcuts
@@ -48,13 +54,18 @@ fun KeyboardShortcutDemo(
     val snackBarHostState = remember { SnackbarHostState() }
     var showMenu by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
-    MaterialTheme {
+    var darkMode by remember { mutableStateOf(false) }
+    val toggleDarkMode = remember { { darkMode = !darkMode } }
+    MaterialTheme(colorScheme = if (darkMode) darkColorScheme() else lightColorScheme()) {
         Scaffold(
             modifier = Modifier.fillMaxSize()
                 .keyboardShortcuts(
                     Pair(
                         Key.S, showKeyboardShortcuts
-                    )
+                    ),
+                    Pair(
+                        Key.D
+                    ) { toggleDarkMode() },
                 ),
             topBar = {
                 TopAppBar(
@@ -95,10 +106,18 @@ fun KeyboardShortcutDemo(
                 LaunchedEffect(focusRequester) {
                     focusRequester.requestFocus()
                 }
-                Button(
-                    onClick = showKeyboardShortcuts,
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    TextWithUnderlinedChar(stringResource(Res.string.show_keyboard_shortcuts))
+                    SwitchWithText(active = darkMode, text = {
+                        TextWithUnderlinedChar(stringResource(Res.string.dark_mode))
+                    }) { toggleDarkMode() }
+                    Button(
+                        onClick = showKeyboardShortcuts,
+                    ) {
+                        TextWithUnderlinedChar(stringResource(Res.string.show_keyboard_shortcuts))
+                    }
                 }
                 if (hardwareKeyboardHidden) {
                     Text(

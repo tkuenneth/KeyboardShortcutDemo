@@ -7,4 +7,5 @@
     <string name="more_options">More options</string>
     <string name="hardware_keyboard_hidden">Hardware keyboard hidden</string>
     <string name="keyboard_shortcuts">Keyboard Shortcuts</string>
+    <string name="dark_mode">Use [Dark mode</string>
 </resources>
