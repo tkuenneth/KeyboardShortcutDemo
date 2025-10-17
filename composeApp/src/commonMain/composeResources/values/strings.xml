@@ -8,4 +8,5 @@
     <string name="hardware_keyboard_hidden">Hardware keyboard hidden</string>
     <string name="keyboard_shortcuts">Keyboard Shortcuts</string>
     <string name="dark_mode">Use [Dark mode</string>
+    <string name="hint">Enter some text</string>
 </resources>
