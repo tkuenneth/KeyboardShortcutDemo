@@ -31,6 +31,7 @@ kotlin {
     sourceSets {
         androidMain.dependencies {
             implementation(compose.preview)
+            implementation(libs.androidx.appcompat)
             implementation(libs.androidx.activity.compose)
         }
         commonMain.dependencies {
