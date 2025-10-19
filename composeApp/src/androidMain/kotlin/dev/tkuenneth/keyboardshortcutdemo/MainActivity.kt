@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
             val hardKeyboardHidden by hardKeyboardHiddenFlow.collectAsStateWithLifecycle()
             MainScreen(
                 listKeyboardShortcuts = globalShortcuts,
-                hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES,
+                hardKeyboardHidden = hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES,
             ) { requestShowKeyboardShortcuts() }
         }
     }
