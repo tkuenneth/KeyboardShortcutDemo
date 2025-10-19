@@ -10,7 +10,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -18,32 +17,24 @@ import kotlinx.coroutines.flow.update
 class MainActivity : ComponentActivity() {
 
     private lateinit var listKeyboardShortcutInfo: List<KeyboardShortcutInfo>
-    private lateinit var mapKeyboardShortcuts: Map<KeyboardShortcutInfo, KeyboardShortcut>
 
     private var hardKeyboardHiddenFlow = MutableStateFlow(-1)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        listKeyboardShortcutInfo = listOf(
+        listKeyboardShortcutInfo = globalShortcuts.map { shortcut ->
             KeyboardShortcutInfo(
-                getString(R.string.say_hello), KeyEvent.KEYCODE_H, KeyEvent.META_CTRL_ON
-            )
-        )
-        mapKeyboardShortcuts = listKeyboardShortcutInfo.associateWith { shortcutInfo ->
-            KeyboardShortcut(
-                label = shortcutInfo.label.toString(),
-                shortcutAsText = shortcutInfo.getDisplayString(),
+                shortcut.label,
+                shortcut.keyAsString.first(),
+                shortcut.modifiers()
             )
         }
         updateFlows()
         setContent {
-            val listKeyboardShortcuts = remember {
-                mapKeyboardShortcuts.values.toList()
-            }
             val hardKeyboardHidden by hardKeyboardHiddenFlow.collectAsStateWithLifecycle()
             MainScreen(
-                listKeyboardShortcuts = listKeyboardShortcuts,
+                listKeyboardShortcuts = globalShortcuts,
                 hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES,
             ) { requestShowKeyboardShortcuts() }
         }
@@ -59,13 +50,11 @@ class MainActivity : ComponentActivity() {
     override fun onKeyShortcut(
         keyCode: Int, event: KeyEvent
     ): Boolean {
-        val keyboardShortcutInfo = listKeyboardShortcutInfo.find {
-            it.keycode == keyCode && event.hasModifiers(it.modifiers)
-        }
-        val shortcut = mapKeyboardShortcuts[keyboardShortcutInfo]
-        if (shortcut != null) {
-            shortcut.triggerAction()
-            return true
+        listKeyboardShortcutInfo.forEachIndexed { index, info ->
+            if (info.keycode == keyCode && event.hasModifiers(info.modifiers)) {
+                globalShortcuts[index].triggerAction()
+                return true
+            }
         }
         return super.onKeyShortcut(keyCode, event)
     }
@@ -75,20 +64,18 @@ class MainActivity : ComponentActivity() {
         updateFlows()
     }
 
-    private fun KeyboardShortcutInfo.getDisplayString(): String {
-        val parts = mutableListOf<String>()
-        if (modifiers and KeyEvent.META_CTRL_ON != 0) {
-            parts.add("Ctrl")
-        }
-        if (keycode in KeyEvent.KEYCODE_A..KeyEvent.KEYCODE_Z) {
-            parts.add(('A' + (keycode - KeyEvent.KEYCODE_A)).toString())
-        }
-        return parts.joinToString("+")
-    }
-
     private fun updateFlows() {
         hardKeyboardHiddenFlow.update {
             resources.configuration.hardKeyboardHidden
         }
     }
+}
+
+private fun KeyboardShortcut.modifiers(): Int {
+    var mask = 0
+    if (ctrl) mask = mask or KeyEvent.META_CTRL_ON
+    if (meta) mask = mask or KeyEvent.META_META_ON
+    if (alt) mask = mask or KeyEvent.META_ALT_ON
+    if (shift) mask = mask or KeyEvent.META_SHIFT_ON
+    return mask
 }

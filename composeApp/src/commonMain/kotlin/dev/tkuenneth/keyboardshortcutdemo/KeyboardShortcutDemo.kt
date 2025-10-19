@@ -38,8 +38,13 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isAltPressed
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isMetaPressed
+import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -81,7 +86,23 @@ fun KeyboardShortcutDemo(
                     Pair(
                         Key.D
                     ) { toggleDarkMode() },
-                ),
+                )
+                // Depending on the platform, global shortcuts may not be delivered when a composable
+                // has requested focus, so we make sure to handle global shortcuts here, too
+                .onPreviewKeyEvent { event ->
+                    shortcuts.forEach { shortcut ->
+                        if (shortcut.key == event.key &&
+                            shortcut.ctrl == event.isCtrlPressed &&
+                            shortcut.meta == event.isMetaPressed &&
+                            shortcut.alt == event.isAltPressed &&
+                            shortcut.shift == event.isShiftPressed
+                        ) {
+                            shortcut.triggerAction()
+                            return@onPreviewKeyEvent true
+                        }
+                    }
+                    false
+                },
             topBar = {
                 TopAppBar(
                     title = { Text(stringResource(Res.string.app_name)) },
@@ -178,8 +199,8 @@ private fun KeyboardShortcutDemoPreview() {
         KeyboardShortcutDemo(
             hardwareKeyboardHidden = false,
             shortcuts = listOf(
-                KeyboardShortcut("Cut", "Ctrl+X"),
-                KeyboardShortcut("Copy", "Ctrl+C")
+                KeyboardShortcut("Cut", Key.X, "X", ctrl = true),
+                KeyboardShortcut("Copy", Key.C, "C", ctrl = true),
             ),
             snackbarMessage = "",
             showKeyboardShortcuts = {},

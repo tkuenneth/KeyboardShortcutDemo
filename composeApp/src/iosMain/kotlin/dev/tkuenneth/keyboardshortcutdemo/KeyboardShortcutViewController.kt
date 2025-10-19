@@ -7,7 +7,9 @@ import kotlinx.cinterop.ObjCAction
 import platform.Foundation.NSSelectorFromString
 import platform.UIKit.UIKeyCommand
 import platform.UIKit.UIKeyModifierAlternate
+import platform.UIKit.UIKeyModifierCommand
 import platform.UIKit.UIKeyModifierControl
+import platform.UIKit.UIKeyModifierShift
 import platform.UIKit.UIViewAutoresizingFlexibleHeight
 import platform.UIKit.UIViewAutoresizingFlexibleWidth
 import platform.UIKit.UIViewController
@@ -33,14 +35,12 @@ class KeyboardShortcutViewController(
         composeController.didMoveToParentViewController(this)
         shortcuts.forEach { shortcut ->
             var mask = 0L
-            shortcut.shortcutAsText.forEach {
-                when (it) {
-                    '^' -> mask = mask or UIKeyModifierControl
-                    '\u2325' -> mask = mask or UIKeyModifierAlternate
-                }
-            }
+            if (shortcut.ctrl) mask = mask or UIKeyModifierControl
+            if (shortcut.meta) mask = mask or UIKeyModifierCommand
+            if (shortcut.alt) mask = mask or UIKeyModifierAlternate
+            if (shortcut.shift) mask = mask or UIKeyModifierShift
             UIKeyCommand.keyCommandWithInput(
-                input = shortcut.shortcutAsText.last().toString(),
+                input = shortcut.keyAsString,
                 modifierFlags = mask,
                 action = NSSelectorFromString("handleCommand:")
             ).apply {

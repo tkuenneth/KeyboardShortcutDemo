@@ -1,9 +1,26 @@
 package dev.tkuenneth.keyboardshortcutdemo
 
-import android.os.Build
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isAltPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 
-class AndroidPlatform : Platform {
-    override val name: String = "Android ${Build.VERSION.SDK_INT}"
-}
-
-actual fun getPlatform(): Platform = AndroidPlatform()
+actual fun Modifier.keyboardShortcuts(
+    vararg shortcuts: Pair<Key, () -> Unit>
+): Modifier = then(
+    Modifier.onPreviewKeyEvent { event ->
+        println("onPreKeyEvent: $event")
+        if (event.type == KeyEventType.KeyDown) {
+            shortcuts.forEach { (key, action) ->
+                if (event.key == key && event.isAltPressed) {
+                    action()
+                    true
+                }
+            }
+        }
+        event.isAltPressed
+    }
+)

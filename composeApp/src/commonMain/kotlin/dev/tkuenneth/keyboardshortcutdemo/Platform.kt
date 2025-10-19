@@ -1,7 +1,14 @@
 package dev.tkuenneth.keyboardshortcutdemo
 
-interface Platform {
-    val name: String
-}
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
 
-expect fun getPlatform(): Platform
+/**
+ * A modifier that listens for specific key presses.
+ * Besides the specified key, Alt must also be pressed.
+ *
+ * @param shortcuts Pairs of keys and their corresponding actions
+ */
+expect fun Modifier.keyboardShortcuts(
+    vararg shortcuts: Pair<Key, () -> Unit>
+): Modifier

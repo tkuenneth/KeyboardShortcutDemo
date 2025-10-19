@@ -4,7 +4,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyShortcut
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
@@ -12,9 +11,6 @@ import androidx.compose.ui.window.application
 import dev.tkuenneth.keyboardshortcutdemo.resources.Res
 import dev.tkuenneth.keyboardshortcutdemo.resources.app_name
 import dev.tkuenneth.keyboardshortcutdemo.resources.more_options
-import dev.tkuenneth.keyboardshortcutdemo.resources.say_hello
-import kotlinx.coroutines.runBlocking
-import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
 fun main() = application {
@@ -23,38 +19,31 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         title = title,
     ) {
-        val nativeShortcuts = remember {
-            runBlocking {
-                listOf(
-                    Pair(getString(Res.string.say_hello), KeyShortcut(Key.H, ctrl = true)),
-                )
-            }
-        }
-        val shortcuts = remember(nativeShortcuts) {
-            nativeShortcuts.map {
-                KeyboardShortcut(it.first, it.second.toHumanReadableString())
-            }
-        }
         var showKeyboardShortcuts by remember { mutableStateOf(false) }
         MainScreen(
-            listKeyboardShortcuts = shortcuts,
+            listKeyboardShortcuts = globalShortcuts,
             hardKeyboardHidden = false,
         ) { showKeyboardShortcuts = true }
         MenuBar {
             Menu(text = stringResource(Res.string.more_options)) {
-                nativeShortcuts.forEachIndexed { index, nativeShortcut ->
+                globalShortcuts.forEachIndexed { index, shortcut ->
                     Item(
-                        text = nativeShortcut.first,
-                        shortcut = nativeShortcut.second,
-                        onClick = { shortcuts[index].triggerAction() })
+                        text = shortcut.label,
+                        shortcut = KeyShortcut(
+                            shortcut.key,
+                            shortcut.ctrl,
+                            shortcut.meta,
+                            shortcut.alt,
+                            shortcut.shift,
+                        ),
+                        onClick = {
+                            globalShortcuts[index].triggerAction()
+                        })
                 }
             }
         }
         KeyboardShortcuts(
-            enabled = showKeyboardShortcuts,
-            shortcuts = shortcuts
+            enabled = showKeyboardShortcuts, shortcuts = globalShortcuts
         ) { showKeyboardShortcuts = false }
     }
 }
-
-private fun KeyShortcut.toHumanReadableString() = this.toString().replace("Key: ", "")
