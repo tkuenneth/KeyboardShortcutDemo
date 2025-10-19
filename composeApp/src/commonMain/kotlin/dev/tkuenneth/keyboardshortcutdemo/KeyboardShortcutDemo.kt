@@ -22,8 +22,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -65,128 +63,126 @@ fun KeyboardShortcutDemo(
     hardwareKeyboardHidden: Boolean,
     shortcuts: List<KeyboardShortcut>,
     snackbarMessage: String,
+    darkMode: Boolean,
     showKeyboardShortcuts: () -> Unit,
-    clearSnackbarMessage: () -> Unit
+    clearSnackbarMessage: () -> Unit,
+    toggleDarkMode: () -> Unit,
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
     var showMenu by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
-    var darkMode by remember { mutableStateOf(false) }
-    val toggleDarkMode = remember { { darkMode = !darkMode } }
     var textFieldValue by remember { mutableStateOf(TextFieldValue()) }
     val animatable = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
-    MaterialTheme(colorScheme = if (darkMode) darkColorScheme() else lightColorScheme()) {
-        Scaffold(
-            modifier = Modifier.fillMaxSize()
-                .keyboardShortcuts(
-                    Pair(
-                        Key.S, showKeyboardShortcuts
-                    ),
-                    Pair(
-                        Key.D
-                    ) { toggleDarkMode() },
-                )
-                // Depending on the platform, global shortcuts may not be delivered when a composable
-                // has requested focus, so we make sure to handle global shortcuts here, too
-                .onPreviewKeyEvent { event ->
-                    shortcuts.forEach { shortcut ->
-                        if (shortcut.key == event.key &&
-                            shortcut.ctrl == event.isCtrlPressed &&
-                            shortcut.meta == event.isMetaPressed &&
-                            shortcut.alt == event.isAltPressed &&
-                            shortcut.shift == event.isShiftPressed
-                        ) {
-                            shortcut.triggerAction()
-                            return@onPreviewKeyEvent true
-                        }
+    Scaffold(
+        modifier = Modifier.fillMaxSize()
+            .keyboardShortcuts(
+                Pair(
+                    Key.S, showKeyboardShortcuts
+                ),
+                Pair(
+                    Key.D
+                ) { toggleDarkMode() },
+            )
+            // Depending on the platform, global shortcuts may not be delivered when a composable
+            // has requested focus, so we make sure to handle global shortcuts here, too
+            .onPreviewKeyEvent { event ->
+                shortcuts.forEach { shortcut ->
+                    if (shortcut.key == event.key &&
+                        shortcut.ctrl == event.isCtrlPressed &&
+                        shortcut.meta == event.isMetaPressed &&
+                        shortcut.alt == event.isAltPressed &&
+                        shortcut.shift == event.isShiftPressed
+                    ) {
+                        shortcut.triggerAction()
+                        return@onPreviewKeyEvent true
                     }
-                    false
-                },
-            topBar = {
-                TopAppBar(
-                    title = { Text(stringResource(Res.string.app_name)) },
-                    actions = {
-                        IconButton(onClick = { showMenu = !showMenu }) {
-                            Icon(
-                                imageVector = Icons.Filled.MoreVert,
-                                contentDescription = stringResource(Res.string.more_options)
+                }
+                false
+            },
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(Res.string.app_name)) },
+                actions = {
+                    IconButton(onClick = { showMenu = !showMenu }) {
+                        Icon(
+                            imageVector = Icons.Filled.MoreVert,
+                            contentDescription = stringResource(Res.string.more_options)
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        shortcuts.forEach { shortcut ->
+                            DropdownMenuItemWithShortcut(
+                                text = shortcut.label,
+                                shortcut = shortcut.shortcutAsText,
+                                onClick = {
+                                    showMenu = false
+                                    shortcut.triggerAction()
+                                }
                             )
                         }
-                        DropdownMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false }
-                        ) {
-                            shortcuts.forEach { shortcut ->
-                                DropdownMenuItemWithShortcut(
-                                    text = shortcut.label,
-                                    shortcut = shortcut.shortcutAsText,
-                                    onClick = {
-                                        showMenu = false
-                                        shortcut.triggerAction()
-                                    }
-                                )
-                            }
-                        }
                     }
-                )
-            },
-            snackbarHost = { SnackbarHost(snackBarHostState) }) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .focusRequester(focusRequester)
-                    .padding(innerPadding)
-                    .fillMaxSize(),
-                contentAlignment = Alignment.Center
+                }
+            )
+        },
+        snackbarHost = { SnackbarHost(snackBarHostState) }) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .focusRequester(focusRequester)
+                .padding(innerPadding)
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            LaunchedEffect(focusRequester) {
+                focusRequester.requestFocus()
+            }
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                LaunchedEffect(focusRequester) {
-                    focusRequester.requestFocus()
-                }
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    TextField(
-                        value = textFieldValue,
-                        onValueChange = { textFieldValue = it },
-                        modifier = Modifier.onKeyEvent {
-                            if (it.type == KeyEventType.KeyUp && it.key == Key.Tab) {
-                                scope.launch {
-                                    animatable.animateTo(359f, animationSpec = tween(durationMillis = 1000))
-                                    animatable.snapTo(0F)
-                                }
-                                true
-                            } else {
-                                false
+                TextField(
+                    value = textFieldValue,
+                    onValueChange = { textFieldValue = it },
+                    modifier = Modifier.onKeyEvent {
+                        if (it.type == KeyEventType.KeyUp && it.key == Key.Tab) {
+                            scope.launch {
+                                animatable.animateTo(359f, animationSpec = tween(durationMillis = 1000))
+                                animatable.snapTo(0F)
                             }
-                        }.graphicsLayer {
-                            rotationY = animatable.value
-                        },
-                        placeholder = { Text(stringResource(Res.string.hint)) }
-                    )
-                    SwitchWithText(active = darkMode, text = {
-                        TextWithUnderlinedChar(stringResource(Res.string.dark_mode))
-                    }) { toggleDarkMode() }
-                    Button(
-                        onClick = showKeyboardShortcuts,
-                    ) {
-                        TextWithUnderlinedChar(stringResource(Res.string.show_keyboard_shortcuts))
-                    }
-                }
-                if (hardwareKeyboardHidden) {
-                    Text(
-                        text = stringResource(Res.string.hardware_keyboard_hidden),
-                        modifier = Modifier.align(Alignment.BottomCenter).safeContentPadding(),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
+                            true
+                        } else {
+                            false
+                        }
+                    }.graphicsLayer {
+                        rotationY = animatable.value
+                    },
+                    placeholder = { Text(stringResource(Res.string.hint)) }
+                )
+                SwitchWithText(active = darkMode, text = {
+                    TextWithUnderlinedChar(stringResource(Res.string.dark_mode))
+                }) { toggleDarkMode() }
+                Button(
+                    onClick = showKeyboardShortcuts,
+                ) {
+                    TextWithUnderlinedChar(stringResource(Res.string.show_keyboard_shortcuts))
                 }
             }
-            LaunchedEffect(snackbarMessage) {
-                if (snackbarMessage.isNotBlank()) {
-                    snackBarHostState.showSnackbar(snackbarMessage)
-                    clearSnackbarMessage()
-                }
+            if (hardwareKeyboardHidden) {
+                Text(
+                    text = stringResource(Res.string.hardware_keyboard_hidden),
+                    modifier = Modifier.align(Alignment.BottomCenter).safeContentPadding(),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+        LaunchedEffect(snackbarMessage) {
+            if (snackbarMessage.isNotBlank()) {
+                snackBarHostState.showSnackbar(snackbarMessage)
+                clearSnackbarMessage()
             }
         }
     }
@@ -203,8 +199,10 @@ private fun KeyboardShortcutDemoPreview() {
                 KeyboardShortcut("Copy", Key.C, "C", ctrl = true),
             ),
             snackbarMessage = "",
+            darkMode = false,
             showKeyboardShortcuts = {},
-            clearSnackbarMessage = {}
+            clearSnackbarMessage = {},
+            toggleDarkMode = {},
         )
     }
 }

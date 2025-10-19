@@ -16,7 +16,9 @@ import org.jetbrains.compose.resources.stringResource
 fun MainScreen(
     listKeyboardShortcuts: List<KeyboardShortcut>,
     hardKeyboardHidden: Boolean,
+    darkMode: Boolean,
     showKeyboardShortcuts: () -> Unit,
+    toggleDarkMode: () -> Unit,
 ) {
     var snackbarMessage by remember { mutableStateOf("") }
     val helloMessage = stringResource(Res.string.hello)
@@ -33,6 +35,9 @@ fun MainScreen(
         hardwareKeyboardHidden = hardKeyboardHidden,
         snackbarMessage = snackbarMessage,
         shortcuts = listKeyboardShortcuts,
+        darkMode = darkMode,
         showKeyboardShortcuts = showKeyboardShortcuts,
-        clearSnackbarMessage = { snackbarMessage = "" })
+        clearSnackbarMessage = { snackbarMessage = "" },
+        toggleDarkMode = toggleDarkMode,
+    )
 }

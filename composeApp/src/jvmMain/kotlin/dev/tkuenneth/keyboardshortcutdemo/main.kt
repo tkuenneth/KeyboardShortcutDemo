@@ -1,5 +1,8 @@
 package dev.tkuenneth.keyboardshortcutdemo
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,30 +23,36 @@ fun main() = application {
         title = title,
     ) {
         var showKeyboardShortcuts by remember { mutableStateOf(false) }
-        MainScreen(
-            listKeyboardShortcuts = globalShortcuts,
-            hardKeyboardHidden = false,
-        ) { showKeyboardShortcuts = true }
-        MenuBar {
-            Menu(text = stringResource(Res.string.more_options)) {
-                globalShortcuts.forEachIndexed { index, shortcut ->
-                    Item(
-                        text = shortcut.label,
-                        shortcut = KeyShortcut(
-                            shortcut.key,
-                            shortcut.ctrl,
-                            shortcut.meta,
-                            shortcut.alt,
-                            shortcut.shift,
-                        ),
-                        onClick = {
-                            globalShortcuts[index].triggerAction()
-                        })
+        var darkMode by remember { mutableStateOf(false) }
+        MaterialTheme(colorScheme = if (darkMode) darkColorScheme() else lightColorScheme()) {
+            MainScreen(
+                listKeyboardShortcuts = globalShortcuts,
+                hardKeyboardHidden = false,
+                darkMode = darkMode,
+                showKeyboardShortcuts = { showKeyboardShortcuts = true },
+                toggleDarkMode = { darkMode = !darkMode }
+            )
+            MenuBar {
+                Menu(text = stringResource(Res.string.more_options)) {
+                    globalShortcuts.forEachIndexed { index, shortcut ->
+                        Item(
+                            text = shortcut.label,
+                            shortcut = KeyShortcut(
+                                shortcut.key,
+                                shortcut.ctrl,
+                                shortcut.meta,
+                                shortcut.alt,
+                                shortcut.shift,
+                            ),
+                            onClick = {
+                                globalShortcuts[index].triggerAction()
+                            })
+                    }
                 }
             }
+            KeyboardShortcuts(
+                enabled = showKeyboardShortcuts, shortcuts = globalShortcuts
+            ) { showKeyboardShortcuts = false }
         }
-        KeyboardShortcuts(
-            enabled = showKeyboardShortcuts, shortcuts = globalShortcuts
-        ) { showKeyboardShortcuts = false }
     }
 }

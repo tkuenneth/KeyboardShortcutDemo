@@ -9,7 +9,14 @@ import android.view.Menu
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -33,10 +40,17 @@ class MainActivity : ComponentActivity() {
         updateFlows()
         setContent {
             val hardKeyboardHidden by hardKeyboardHiddenFlow.collectAsStateWithLifecycle()
-            MainScreen(
-                listKeyboardShortcuts = globalShortcuts,
-                hardKeyboardHidden = hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES,
-            ) { requestShowKeyboardShortcuts() }
+            val systemInDarkMode = isSystemInDarkTheme()
+            var darkMode by rememberSaveable { mutableStateOf(systemInDarkMode) }
+            MaterialTheme(colorScheme = if (darkMode) darkColorScheme() else lightColorScheme()) {
+                MainScreen(
+                    listKeyboardShortcuts = globalShortcuts,
+                    hardKeyboardHidden = hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES,
+                    darkMode = darkMode,
+                    showKeyboardShortcuts = { requestShowKeyboardShortcuts() },
+                    toggleDarkMode = { darkMode = !darkMode }
+                )
+            }
         }
     }
 
