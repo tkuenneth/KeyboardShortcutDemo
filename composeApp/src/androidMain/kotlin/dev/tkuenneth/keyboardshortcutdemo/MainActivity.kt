@@ -64,8 +64,9 @@ class MainActivity : ComponentActivity() {
     override fun onKeyShortcut(
         keyCode: Int, event: KeyEvent
     ): Boolean {
-        listKeyboardShortcutInfo.forEachIndexed { index, info ->
-            if (info.keycode == keyCode && event.hasModifiers(info.modifiers)) {
+        val displayLabel = event.displayLabel.uppercase()
+        globalShortcuts.forEachIndexed { index, info ->
+            if (info.keyAsString == displayLabel && event.hasModifiers(info.modifiers())) {
                 globalShortcuts[index].triggerAction()
                 return true
             }
