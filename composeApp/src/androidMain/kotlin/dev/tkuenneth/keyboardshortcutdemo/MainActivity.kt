@@ -47,7 +47,7 @@ class MainActivity : ComponentActivity() {
                     listKeyboardShortcuts = globalShortcuts,
                     hardKeyboardHidden = hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES,
                     darkMode = darkMode,
-                    showKeyboardShortcuts = { requestShowKeyboardShortcuts() },
+                    showKeyboardShortcuts = ::requestShowKeyboardShortcuts,
                     toggleDarkMode = { darkMode = !darkMode }
                 )
             }
