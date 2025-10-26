@@ -65,9 +65,9 @@ class MainActivity : ComponentActivity() {
         keyCode: Int, event: KeyEvent
     ): Boolean {
         val displayLabel = event.displayLabel.uppercase()
-        globalShortcuts.forEachIndexed { index, info ->
-            if (info.keyAsString == displayLabel && event.hasModifiers(info.modifiers())) {
-                globalShortcuts[index].triggerAction()
+        globalShortcuts.forEach { shortcut ->
+            if (shortcut.keyAsString == displayLabel && event.hasModifiers(shortcut.modifiers())) {
+                shortcut.triggerAction()
                 return true
             }
         }
