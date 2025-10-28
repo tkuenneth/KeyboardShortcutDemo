@@ -145,7 +145,11 @@ fun KeyboardShortcutDemo(
             ) {
                 TextField(
                     value = textFieldValue,
-                    onValueChange = { textFieldValue = it },
+                    onValueChange = {
+                        // Filter unwanted chars on iOS
+                        if (!it.text.any { char -> char in listOf('∂', '‚') })
+                            textFieldValue = it
+                    },
                     modifier = Modifier.onKeyEvent {
                         if (it.type == KeyEventType.KeyUp && it.key == Key.Tab) {
                             scope.launch {
